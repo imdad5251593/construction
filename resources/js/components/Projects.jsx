@@ -11,6 +11,25 @@ const defaultForm = {
   sale_date: '',
 };
 
+const formatDateForInput = (value) => {
+  if (!value) return '';
+  // handle values like '2025-08-02' or ISO '2025-08-02T00:00:00.000000Z'
+  if (typeof value === 'string') {
+    if (value.length >= 10) return value.slice(0, 10);
+    return value;
+  }
+  try {
+    const d = new Date(value);
+    if (!isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+  } catch (_) {}
+  return '';
+};
+
 const Projects = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -85,11 +104,11 @@ const Projects = () => {
       name: project.name || '',
       description: project.description || '',
       location: project.location || '',
-      start_date: project.start_date || '',
-      end_date: project.end_date || '',
+      start_date: formatDateForInput(project.start_date) || '',
+      end_date: formatDateForInput(project.end_date) || '',
       is_completed: Boolean(project.is_completed),
       is_sold: Boolean(project.is_sold),
-      sale_date: project.sale_date || '',
+      sale_date: formatDateForInput(project.sale_date) || '',
     });
     setShowForm(true);
   };
@@ -100,8 +119,17 @@ const Projects = () => {
       setLoading(true);
       setError('');
       const payload = { ...form };
-      if (!payload.end_date) delete payload.end_date;
-      if (!payload.sale_date) delete payload.sale_date;
+
+      // normalize date strings
+      payload.start_date = formatDateForInput(payload.start_date);
+      if (payload.end_date) payload.end_date = formatDateForInput(payload.end_date); else delete payload.end_date;
+
+      // If not sold, clear sale_date to avoid stale values on update
+      if (!payload.is_sold) {
+        payload.sale_date = null;
+      } else {
+        payload.sale_date = formatDateForInput(payload.sale_date) || null;
+      }
 
       if (editingId) {
         await window.axios.put(`/api/projects/${editingId}`, payload);
@@ -112,7 +140,6 @@ const Projects = () => {
       setShowForm(false);
       resetForm();
 
-      // If creating on empty page, stay on current page; if deleting later adjust
       await fetchProjects();
     } catch (e) {
       setError(e?.response?.data?.message || e?.message || 'Failed to save project');
@@ -174,6 +201,11 @@ const Projects = () => {
     return sortDirection === 'asc' ? '▲' : '▼';
   }, [sortBy, sortDirection]);
 
+  const inputClass = 'mt-1 block w-full h-10 px-3 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm';
+  const textareaClass = 'mt-1 block w-full min-h-24 px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm';
+  const selectClass = 'rounded-md h-10 px-2 border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm';
+  const checkboxClass = 'h-5 w-5 text-indigo-600 border-gray-300 rounded';
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -194,7 +226,7 @@ const Projects = () => {
               value={search}
               onChange={(e) => { setPage(1); setSearch(e.target.value); }}
               placeholder="Search by name, location, description…"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className={inputClass}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -202,7 +234,7 @@ const Projects = () => {
             <select
               value={perPage}
               onChange={(e) => { setPage(1); setPerPage(Number(e.target.value)); }}
-              className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className={selectClass}
             >
               {[10, 20, 50].map((n) => (
                 <option key={n} value={n}>{n}</option>
@@ -248,12 +280,12 @@ const Projects = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{p.start_date || '—'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{p.end_date || '—'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.is_completed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    <span className={`${'px-2 inline-flex text-xs leading-5 font-semibold rounded-full'} ${p.is_completed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                       {p.is_completed ? 'Yes' : 'No'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.is_sold ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'}`}>
+                    <span className={`${'px-2 inline-flex text-xs leading-5 font-semibold rounded-full'} ${p.is_sold ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'}`}>
                       {p.is_sold ? 'Yes' : 'No'}
                     </span>
                   </td>
@@ -294,7 +326,7 @@ const Projects = () => {
       {showForm && (
         <div className="fixed inset-0 z-40 flex">
           <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setShowForm(false)}></div>
-          <div className="relative ml-auto h-full w-full sm:w-[480px] bg-white shadow-xl overflow-y-auto">
+          <div className="relative ml-auto h-full w-full sm:w-[560px] bg-white shadow-xl overflow-y-auto">
             <div className="px-6 py-4 border-b flex items-center justify-between">
               <h2 className="text-lg font-medium text-gray-900">{editingId ? 'Edit Project' : 'New Project'}</h2>
               <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowForm(false)}>✕</button>
@@ -302,39 +334,51 @@ const Projects = () => {
             <form className="p-6 space-y-4" onSubmit={submitForm}>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Name</label>
-                <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Location</label>
-                <input type="text" required value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                <input type="text" required value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className={inputClass} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Description</label>
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className={textareaClass} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Start date</label>
-                  <input type="date" required value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                  <input type="date" required value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className={inputClass} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">End date</label>
-                  <input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                  <input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className={inputClass} disabled={!form.is_completed} />
+                  {!form.is_completed && (
+                    <p className="mt-1 text-xs text-gray-500">Mark as completed to set end date</p>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                  <input type="checkbox" checked={form.is_completed} onChange={(e) => setForm({ ...form, is_completed: e.target.checked })} />
+                  <input type="checkbox" className={checkboxClass} checked={form.is_completed} onChange={(e) => {
+                    const next = e.target.checked;
+                    setForm((prev) => ({ ...prev, is_completed: next, end_date: next ? prev.end_date : '' }));
+                  }} />
                   Completed
                 </label>
                 <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                  <input type="checkbox" checked={form.is_sold} onChange={(e) => setForm({ ...form, is_sold: e.target.checked })} />
+                  <input type="checkbox" className={checkboxClass} checked={form.is_sold} onChange={(e) => {
+                    const next = e.target.checked;
+                    setForm((prev) => ({ ...prev, is_sold: next, sale_date: next ? prev.sale_date : '' }));
+                  }} />
                   Sold
                 </label>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Sale date</label>
-                <input type="date" value={form.sale_date} onChange={(e) => setForm({ ...form, sale_date: e.target.value })} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                <input type="date" value={form.sale_date} onChange={(e) => setForm({ ...form, sale_date: e.target.value })} className={inputClass} disabled={!form.is_sold} />
+                {!form.is_sold && (
+                  <p className="mt-1 text-xs text-gray-500">Mark as sold to set sale date</p>
+                )}
               </div>
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button type="button" className="px-4 py-2 rounded border" onClick={() => setShowForm(false)}>Cancel</button>
