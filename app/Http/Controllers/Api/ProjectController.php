@@ -13,13 +13,49 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $projects = Project::with(['investments.investor', 'expenses', 'sale'])->get();
-        
+        $search = (string) $request->query('search', '');
+        $perPage = (int) $request->query('per_page', 10);
+        $perPage = max(1, min($perPage, 100));
+        $sortBy = (string) $request->query('sort_by', 'start_date');
+        $sortDirection = strtolower((string) $request->query('sort_direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $allowedSorts = ['name', 'location', 'start_date', 'end_date', 'is_completed', 'is_sold', 'created_at'];
+        if (! in_array($sortBy, $allowedSorts, true)) {
+            $sortBy = 'start_date';
+        }
+
+        $query = Project::query()
+            ->with(['investments.investor', 'expenses', 'sale']);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $query->orderBy($sortBy, $sortDirection);
+
+        $projects = $query->paginate($perPage);
+
         return response()->json([
             'success' => true,
-            'data' => $projects
+            'data' => $projects->items(),
+            'meta' => [
+                'current_page' => $projects->currentPage(),
+                'last_page' => $projects->lastPage(),
+                'per_page' => $projects->perPage(),
+                'total' => $projects->total(),
+            ],
+            'links' => [
+                'first' => $projects->url(1),
+                'last' => $projects->url($projects->lastPage()),
+                'prev' => $projects->previousPageUrl(),
+                'next' => $projects->nextPageUrl(),
+            ],
         ]);
     }
 
