@@ -31,7 +31,7 @@ const Projects = () => {
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
 
-  const [viewing, setViewing] = useState(null); // detailed view project
+  const [viewing, setViewing] = useState(null);
   const [viewData, setViewData] = useState(null);
   const [viewLoading, setViewLoading] = useState(false);
 
@@ -184,30 +184,37 @@ const Projects = () => {
   const isInvalid = (field) => !!fieldErrors[field];
   const errorText = (field) => Array.isArray(fieldErrors[field]) ? fieldErrors[field][0] : fieldErrors[field];
 
+  const inputClass = (field) => `mt-1 block w-full rounded-md border ${isInvalid(field) ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'} shadow-sm sm:text-sm`;
+
   return (
     <div>
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <h1 className="h3 fw-bold text-dark m-0">Projects</h1>
-        <button className="btn btn-primary" onClick={openCreate}>+ New Project</button>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
+        <button
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+          onClick={openCreate}
+        >
+          + New Project
+        </button>
       </div>
 
-      <div className="bg-white shadow rounded-2">
-        <div className="p-3 d-flex flex-column flex-sm-row gap-2 align-items-sm-center justify-content-sm-between">
-          <div className="flex-grow-1">
+      <div className="bg-white shadow rounded-md">
+        <div className="px-4 py-4 sm:px-6 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+          <div className="flex-1">
             <input
               type="text"
               value={search}
               onChange={(e) => { setPage(1); setSearch(e.target.value); }}
               placeholder="Search by name, location, description…"
-              className="form-control"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
           </div>
-          <div className="d-flex align-items-center gap-2">
-            <label className="text-muted small m-0">Rows:</label>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Rows:</label>
             <select
               value={perPage}
               onChange={(e) => { setPage(1); setPerPage(Number(e.target.value)); }}
-              className="form-select w-auto"
+              className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm w-24"
             >
               {[10, 20, 50].map((n) => (
                 <option key={n} value={n}>{n}</option>
@@ -216,9 +223,9 @@ const Projects = () => {
           </div>
         </div>
 
-        <div className="table-responsive">
-          <table className="table table-hover align-middle">
-            <thead className="table-light">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
                 {[
                   ['name', 'Name'],
@@ -228,46 +235,44 @@ const Projects = () => {
                   ['is_completed', 'Completed'],
                   ['is_sold', 'Sold'],
                 ].map(([key, label]) => (
-                  <th key={key} className="text-uppercase small text-muted" role="button" onClick={() => toggleSort(key)}>
-                    <span className="d-inline-flex align-items-center gap-1">{label} <span className="text-muted">{sortIndicator(key)}</span></span>
+                  <th key={key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => toggleSort(key)}>
+                    <span className="inline-flex items-center gap-1">{label} <span className="text-gray-400">{sortIndicator(key)}</span></span>
                   </th>
                 ))}
-                <th className="text-end text-uppercase small text-muted">Actions</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-white divide-y divide-gray-200">
               {loading && (
                 <tr>
-                  <td colSpan={7} className="py-5 text-center text-muted">Loading…</td>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading…</td>
                 </tr>
               )}
               {!loading && items.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-5 text-center text-muted">No projects found</td>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">No projects found</td>
                 </tr>
               )}
               {!loading && items.map((p) => (
                 <tr key={p.id}>
-                  <td className="text-dark">{p.name}</td>
-                  <td className="text-secondary">{p.location || '—'}</td>
-                  <td className="text-secondary">{p.start_date || '—'}</td>
-                  <td className="text-secondary">{p.end_date || '—'}</td>
-                  <td>
-                    <span className={`badge rounded-pill ${p.is_completed ? 'bg-success-subtle text-success-emphasis border border-success-subtle' : 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle'}`}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{p.location || '—'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{p.start_date || '—'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{p.end_date || '—'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.is_completed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                       {p.is_completed ? 'Yes' : 'No'}
                     </span>
                   </td>
-                  <td>
-                    <span className={`badge rounded-pill ${p.is_sold ? 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' : 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle'}`}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${p.is_sold ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'}`}>
                       {p.is_sold ? 'Yes' : 'No'}
                     </span>
                   </td>
-                  <td className="text-end">
-                    <div className="btn-group btn-group-sm" role="group">
-                      <button className="btn btn-link text-decoration-none" onClick={() => openView(p)}>View</button>
-                      <button className="btn btn-link text-decoration-none" onClick={() => openEdit(p)}>Edit</button>
-                      <button className="btn btn-link text-danger text-decoration-none" onClick={() => confirmDelete(p.id)}>Delete</button>
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                    <button className="text-indigo-600 hover:text-indigo-900" onClick={() => openView(p)}>View</button>
+                    <button className="text-gray-600 hover:text-gray-900" onClick={() => openEdit(p)}>Edit</button>
+                    <button className="text-red-600 hover:text-red-900" onClick={() => confirmDelete(p.id)}>Delete</button>
                   </td>
                 </tr>
               ))}
@@ -275,101 +280,107 @@ const Projects = () => {
           </table>
         </div>
 
-        <div className="p-3 d-flex align-items-center justify-content-between">
-          <div className="small text-muted">Total: {meta.total}</div>
-          <div className="d-flex align-items-center gap-2">
-            <button className="btn btn-outline-secondary btn-sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Prev</button>
-            <span className="small">Page {page} of {meta.last_page}</span>
-            <button className="btn btn-outline-secondary btn-sm" onClick={() => setPage((p) => Math.min(meta.last_page || 1, p + 1))} disabled={page >= (meta.last_page || 1)}>Next</button>
+        <div className="px-4 py-4 flex items-center justify-between">
+          <div className="text-sm text-gray-600">Total: {meta.total}</div>
+          <div className="flex items-center gap-2">
+            <button
+              className="px-3 py-1 rounded border text-sm disabled:opacity-50"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+            >Prev</button>
+            <span className="text-sm">Page {page} of {meta.last_page}</span>
+            <button
+              className="px-3 py-1 rounded border text-sm disabled:opacity-50"
+              onClick={() => setPage((p) => Math.min(meta.last_page || 1, p + 1))}
+              disabled={page >= (meta.last_page || 1)}
+            >Next</button>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="alert alert-danger mt-3 py-2 small mb-0" role="alert">{error}</div>
+        <div className="mt-4 p-3 rounded border border-red-200 bg-red-50 text-red-700 text-sm">{error}</div>
       )}
 
-      {/* Create/Edit Offcanvas-like Drawer */}
       {showForm && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex" style={{ zIndex: 1045 }}>
-          <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" onClick={() => setShowForm(false)} />
-          <div className="ms-auto h-100 bg-white shadow-lg overflow-auto" style={{ width: 480 }}>
-            <div className="d-flex align-items-center justify-content-between border-bottom px-4 py-3">
-              <h2 className="h5 m-0">{editingId ? 'Edit Project' : 'New Project'}</h2>
-              <button className="btn btn-sm btn-outline-secondary" onClick={() => setShowForm(false)}>Close</button>
+        <div className="fixed inset-0 z-40 flex">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setShowForm(false)}></div>
+          <div className="relative ml-auto h-full w-full sm:w-[480px] bg-white shadow-xl overflow-y-auto">
+            <div className="px-6 py-4 border-b flex items-center justify-between">
+              <h2 className="text-lg font-medium text-gray-900">{editingId ? 'Edit Project' : 'New Project'}</h2>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowForm(false)}>✕</button>
             </div>
-            <form className="p-4" onSubmit={submitForm} noValidate>
-              <div className="mb-3">
-                <label className="form-label">Name</label>
-                <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={`form-control ${isInvalid('name') ? 'is-invalid' : ''}`} />
-                {isInvalid('name') && <div className="invalid-feedback">{errorText('name')}</div>}
+            <form className="p-6 space-y-4" onSubmit={submitForm} noValidate>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass('name')} />
+                {isInvalid('name') && <p className="mt-1 text-sm text-red-600">{errorText('name')}</p>}
               </div>
-              <div className="mb-3">
-                <label className="form-label">Location</label>
-                <input type="text" required value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className={`form-control ${isInvalid('location') ? 'is-invalid' : ''}`} />
-                {isInvalid('location') && <div className="invalid-feedback">{errorText('location')}</div>}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Location</label>
+                <input type="text" required value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className={inputClass('location')} />
+                {isInvalid('location') && <p className="mt-1 text-sm text-red-600">{errorText('location')}</p>}
               </div>
-              <div className="mb-3">
-                <label className="form-label">Description</label>
-                <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`form-control ${isInvalid('description') ? 'is-invalid' : ''}`} />
-                {isInvalid('description') && <div className="invalid-feedback">{errorText('description')}</div>}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Description</label>
+                <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputClass('description')} />
+                {isInvalid('description') && <p className="mt-1 text-sm text-red-600">{errorText('description')}</p>}
               </div>
-              <div className="row g-3">
-                <div className="col-12 col-sm-6">
-                  <label className="form-label">Start date</label>
-                  <input type="date" required value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className={`form-control ${isInvalid('start_date') ? 'is-invalid' : ''}`} />
-                  {isInvalid('start_date') && <div className="invalid-feedback">{errorText('start_date')}</div>}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Start date</label>
+                  <input type="date" required value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className={inputClass('start_date')} />
+                  {isInvalid('start_date') && <p className="mt-1 text-sm text-red-600">{errorText('start_date')}</p>}
                 </div>
-                <div className="col-12 col-sm-6">
-                  <label className="form-label">End date</label>
-                  <input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className={`form-control ${isInvalid('end_date') ? 'is-invalid' : ''}`} />
-                  {isInvalid('end_date') && <div className="invalid-feedback">{errorText('end_date')}</div>}
-                </div>
-              </div>
-              <div className="row g-3 mt-1">
-                <div className="col-12 col-sm-6 d-flex align-items-center gap-2">
-                  <input id="is_completed" type="checkbox" className="form-check-input" checked={form.is_completed} onChange={(e) => setForm({ ...form, is_completed: e.target.checked })} />
-                  <label className="form-check-label" htmlFor="is_completed">Completed</label>
-                </div>
-                <div className="col-12 col-sm-6 d-flex align-items-center gap-2">
-                  <input id="is_sold" type="checkbox" className="form-check-input" checked={form.is_sold} onChange={(e) => setForm({ ...form, is_sold: e.target.checked })} />
-                  <label className="form-check-label" htmlFor="is_sold">Sold</label>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">End date</label>
+                  <input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className={inputClass('end_date')} />
+                  {isInvalid('end_date') && <p className="mt-1 text-sm text-red-600">{errorText('end_date')}</p>}
                 </div>
               </div>
-              <div className="mt-3">
-                <label className="form-label">Sale date</label>
-                <input type="date" value={form.sale_date} onChange={(e) => setForm({ ...form, sale_date: e.target.value })} className={`form-control ${isInvalid('sale_date') ? 'is-invalid' : ''}`} />
-                {isInvalid('sale_date') && <div className="invalid-feedback">{errorText('sale_date')}</div>}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded" checked={form.is_completed} onChange={(e) => setForm({ ...form, is_completed: e.target.checked })} />
+                  Completed
+                </label>
+                <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded" checked={form.is_sold} onChange={(e) => setForm({ ...form, is_sold: e.target.checked })} />
+                  Sold
+                </label>
               </div>
-              <div className="pt-3 d-flex align-items-center justify-content-end gap-2">
-                <button type="button" className="btn btn-light" onClick={() => setShowForm(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">{editingId ? 'Save changes' : 'Create project'}</button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Sale date</label>
+                <input type="date" value={form.sale_date} onChange={(e) => setForm({ ...form, sale_date: e.target.value })} className={inputClass('sale_date')} />
+                {isInvalid('sale_date') && <p className="mt-1 text-sm text-red-600">{errorText('sale_date')}</p>}
+              </div>
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button type="button" className="px-4 py-2 rounded border" onClick={() => setShowForm(false)}>Cancel</button>
+                <button type="submit" className="px-4 py-2 rounded text-white bg-indigo-600 hover:bg-indigo-700">{editingId ? 'Save changes' : 'Create project'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* View modal */}
       {viewing && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style={{ zIndex: 1045 }}>
-          <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-25" onClick={closeView}></div>
-          <div className="bg-white rounded-3 shadow-lg w-100" style={{ maxWidth: 900 }}>
-            <div className="d-flex align-items-center justify-content-between border-bottom px-4 py-3">
-              <h3 className="h5 m-0">Project details</h3>
-              <button className="btn btn-sm btn-outline-secondary" onClick={closeView}>Close</button>
+        <div className="fixed inset-0 z-40 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/30" onClick={closeView}></div>
+          <div className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4">
+            <div className="px-6 py-4 border-b flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900">Project details</h3>
+              <button className="text-gray-500 hover:text-gray-700" onClick={closeView}>✕</button>
             </div>
-            <div className="p-4">
-              {viewLoading && <div className="text-muted">Loading…</div>}
+            <div className="p-6">
+              {viewLoading && <div className="text-gray-600">Loading…</div>}
               {!viewLoading && viewData && (
-                <div className="row g-3 small">
-                  <div className="col-12 col-md-6"><span className="text-muted">Name:</span> <span className="text-dark">{viewData.name}</span></div>
-                  <div className="col-12 col-md-6"><span className="text-muted">Location:</span> <span className="text-dark">{viewData.location || '—'}</span></div>
-                  <div className="col-12 col-md-6"><span className="text-muted">Start:</span> <span className="text-dark">{viewData.start_date || '—'}</span></div>
-                  <div className="col-12 col-md-6"><span className="text-muted">End:</span> <span className="text-dark">{viewData.end_date || '—'}</span></div>
-                  <div className="col-12 col-md-6"><span className="text-muted">Completed:</span> <span className="text-dark">{viewData.is_completed ? 'Yes' : 'No'}</span></div>
-                  <div className="col-12 col-md-6"><span className="text-muted">Sold:</span> <span className="text-dark">{viewData.is_sold ? 'Yes' : 'No'}</span></div>
-                  <div className="col-12 col-md-6"><span className="text-muted">Sale date:</span> <span className="text-dark">{viewData.sale_date || '—'}</span></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-gray-500">Name:</span> <span className="text-gray-900">{viewData.name}</span></div>
+                  <div><span className="text-gray-500">Location:</span> <span className="text-gray-900">{viewData.location || '—'}</span></div>
+                  <div><span className="text-gray-500">Start:</span> <span className="text-gray-900">{viewData.start_date || '—'}</span></div>
+                  <div><span className="text-gray-500">End:</span> <span className="text-gray-900">{viewData.end_date || '—'}</span></div>
+                  <div><span className="text-gray-500">Completed:</span> <span className="text-gray-900">{viewData.is_completed ? 'Yes' : 'No'}</span></div>
+                  <div><span className="text-gray-500">Sold:</span> <span className="text-gray-900">{viewData.is_sold ? 'Yes' : 'No'}</span></div>
+                  <div><span className="text-gray-500">Sale date:</span> <span className="text-gray-900">{viewData.sale_date || '—'}</span></div>
                 </div>
               )}
             </div>
